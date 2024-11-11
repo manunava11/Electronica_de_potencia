@@ -1,0 +1,140 @@
+#define ANALOG_PIN 36  // Pin analógico donde recibes la señal alterna
+#define DIGITAL_PIN 25 // Pin digital que se activará en cada cruce por cero
+#define HIGH_TIME 500  // Tiempo en milisegundos para la señal en alto
+
+unsigned long lastZeroCrossingTime = 0;
+unsigned long lastPulseTime = 0;
+int lastAnalogValue = 0;
+int frequency = 0;
+unsigned long period = 0;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(DIGITAL_PIN, OUTPUT);
+  digitalWrite(DIGITAL_PIN, LOW);
+}
+
+void loop() {
+  int analogValue = analogRead(ANALOG_PIN);
+  detectZeroCrossing(analogValue);
+  updateDigitalPin();
+}
+
+void detectZeroCrossing(int analogValue) {
+  // Detecta el cruce por cero y calcula la frecuencia
+  if (lastAnalogValue < 2048 && analogValue >= 2048) {
+    unsigned long currentTime = millis();
+    
+    if (lastZeroCrossingTime > 0) {
+      period = currentTime - lastZeroCrossingTime;
+      frequency = calculateFrequency(period);
+      Serial.print("Frecuencia: ");
+      Serial.print(frequency);
+      Serial.println(" Hz");
+    }
+    lastZeroCrossingTime = currentTime;
+    triggerDigitalPulse();
+  }
+  lastAnalogValue = analogValue;
+}
+
+int calculateFrequency(unsigned long period) {
+  // Calcula y devuelve la frecuencia en Hz
+  return 1000 / period;
+}
+
+void triggerDigitalPulse() {
+  // Activa el pin digital y registra el tiempo de activación
+  digitalWrite(DIGITAL_PIN, HIGH);
+  lastPulseTime = millis();
+}
+
+void updateDigitalPin() {
+  // Apaga el pin digital después de 500 ms
+  if (millis() - lastPulseTime >= HIGH_TIME && digitalRead(DIGITAL_PIN) == HIGH) {
+    digitalWrite(DIGITAL_PIN, LOW);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#define ANALOG_PIN 36         // Pin analógico donde recibes la señal alterna
+#define NUM_OUTPUT_PINS 6     // Número de pines de salida
+#define HIGH_TIME 500         // Tiempo en milisegundos para la señal en alto
+
+// Pines de salida definidos en un array
+const int outputPins[NUM_OUTPUT_PINS] = {25, 26, 27, 32, 33, 34};
+
+unsigned long lastZeroCrossingTime = 0;
+unsigned long lastPulseTime = 0;
+int lastAnalogValue = 0;
+int frequency = 0;
+unsigned long period = 0;
+int currentPinIndex = 0;  // Índice para manejar el pin de salida actual
+
+void setup() {
+  Serial.begin(115200);
+  // Configura todos los pines de salida y los pone en LOW
+  for (int i = 0; i < NUM_OUTPUT_PINS; i++) {
+    pinMode(outputPins[i], OUTPUT);
+    digitalWrite(outputPins[i], LOW);
+  }
+}
+
+void loop() {
+  int analogValue = analogRead(ANALOG_PIN);
+  detectZeroCrossing(analogValue);
+  updateDigitalPins();
+}
+
+void detectZeroCrossing(int analogValue) {
+  // Detecta el cruce por cero y calcula la frecuencia
+  if (lastAnalogValue < 2048 && analogValue >= 2048) {
+    unsigned long currentTime = millis();
+    
+    if (lastZeroCrossingTime > 0) {
+      period = currentTime - lastZeroCrossingTime;
+      frequency = calculateFrequency(period);
+      Serial.print("Frecuencia: ");
+      Serial.print(frequency);
+      Serial.println(" Hz");
+    }
+    lastZeroCrossingTime = currentTime;
+    triggerDigitalPulse();
+  }
+  lastAnalogValue = analogValue;
+}
+
+int calculateFrequency(unsigned long period) {
+  // Calcula y devuelve la frecuencia en Hz
+  return 1000 / period;
+}
+
+void triggerDigitalPulse() {
+  // Activa el pin de salida actual y registra el tiempo de activación
+  digitalWrite(outputPins[currentPinIndex], HIGH);
+  lastPulseTime = millis();
+  
+  // Incrementa el índice para el próximo pin de salida
+  currentPinIndex = (currentPinIndex + 1) % NUM_OUTPUT_PINS;
+}
+
+void updateDigitalPins() {
+  // Apaga el pin activo después de 500 ms
+  for (int i = 0; i < NUM_OUTPUT_PINS; i++) {
+    if (millis() - lastPulseTime >= HIGH_TIME && digitalRead(outputPins[i]) == HIGH) {
+      digitalWrite(outputPins[i], LOW);
+    }
+  }
+}
