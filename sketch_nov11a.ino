@@ -7,11 +7,12 @@ int i=0;
 int lim_alfa = 90;
 const int pinAlfa = ;
 const int pinAlfaLectura = ;
-const int 
+float periodo;
 void setup() {
     pinMode(pinSalida, OUTPUT);
     Serial.begin(115200);
     float frecuenciaMedida = medirFrecuencia();
+    periodo = 1/frecuenciaMedida;
     Serial.print("Frecuencia: ");
     Serial.print(frecuenciaMedida);
     Serial.println(" Hz");
@@ -20,15 +21,18 @@ void setup() {
 }
 
 void loop() {
-    detectarCrucePorCero(100);             // Activar el pin de salida por 500 ms en cada cruce por cero
+    detectarCrucePorCero(100,alfa); // Activar el pin de salida por 100 ms en cada cruce por cero, esperando alfa milisegundos.
+    // cuando llego aca, ya paso el flanco descendente de la señal.
     medirAlfa();
+
+
 }
 
 // Función para generar una señal de onda sinusoidal aproximada en el pin PWM
 
 
 // Función para detectar el cruce por cero y activar el pin de salida
-void detectarCrucePorCero(unsigned long tiempoActivacion) {
+void detectarCrucePorCero(unsigned long tiempoActivacion,unsigned int alfa) {
     static float valorPrevio = 0;
     float valorActual = analogRead(pinEntrada) * (3.3 / 4095.0);  // Ajuste para ESP32: 12 bits (0-4095) y 3.3V
     valorPrevio = valorActual;
@@ -37,8 +41,10 @@ void detectarCrucePorCero(unsigned long tiempoActivacion) {
     while (!cruce) {
         valorActual = analogRead(pinEntrada) * (3.3 / 4095.0);  // Lectura analógica
         if (valorPrevio * valorActual <= 0) {
+		Serial.println("Cruce por cero!");
+		delay(alfa);
             digitalWrite(pinesSalida[i], HIGH);  // Activa el pin de salida
-            Serial.println("Led ");
+            Serial.println("Disparo ");
             Serial.print(i);
             delayMicroseconds(tiempoActivacion * 1000);  // Tiempo en alto especificado en microsegundos
             digitalWrite(pinesSalida[i], LOW);   // Desactiva el pin de salida
@@ -47,6 +53,12 @@ void detectarCrucePorCero(unsigned long tiempoActivacion) {
             if (i == 6) {  // Si se pasa del último pin, reinicia
                 i = 0;
             }
+		while(valorPrevio * valorActual  <= 0)
+		{
+			// espero a que termine el flanco descendente para no contarlo doble.
+			 valorPrevio = valorActual;
+			 valorActual = analogRead(pinEntrada) * (3.3 / 4095.0); 
+		}
         }
         valorPrevio = valorActual;
     }
