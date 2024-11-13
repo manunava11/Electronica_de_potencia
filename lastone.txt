@@ -1,0 +1,110 @@
+const int pinEntradaRS = 4;        // entra R-S
+const int pinEntradaRT = 5;        // entra R-T
+const int pinEntradaST = 2;        // entra S-T
+const int pinesSalida1[] = {13,14,15,16,17,18,19};
+float frecuenciaMedida;
+int i1=0;
+int i2=0;
+int i3=0;
+float periodo;
+void setup() {
+    pinMode(pinSalida, OUTPUT);
+    Serial.begin(115200);
+    pinMode(pinEntradaRS, INPUT);
+    attachInterrupt(digitalPinToInterrupt(pinEntradaRT), ISR, RISING);
+	pinMode(pinEntradaRT, INPUT);
+    attachInterrupt(digitalPinToInterrupt(pinEntradaRS), ISR2, RISING);
+	pinMode(pinEntradaST, INPUT);
+    attachInterrupt(digitalPinToInterrupt(pinEntradaST), ISR3, RISING);
+    
+   
+}
+
+void loop() {
+    frecuenciaMedida = medirFrecuencia();
+    periodo = 1/frecuenciaMedida;
+    Serial.print("Frecuencia: ");
+    Serial.print(frecuenciaMedida);
+    Serial.println(" Hz");
+
+
+}
+
+// Interrupcion de flanco ascendente para cambiar el disparo.
+void ISR() {
+    if(i==0)
+	{
+    	// poner en low los que corersponden
+	i++;
+	}
+    else
+	{
+	// en high lo que corresponde y low
+	digitalWrite(pinesSalida[6],LOW);
+	i=0;
+	}
+    
+ 
+}
+// Interrupcion de flanco ascendente para cambiar el disparo.
+void ISR2() {
+    if(i==0)
+	{
+    	// poner en low los que corersponden
+	i++;
+	}
+    else
+	{
+	// en high lo que corresponde y low
+	digitalWrite(pinesSalida[6],LOW);
+	i=0;
+	}
+    
+ 
+}
+// Interrupcion de flanco ascendente para cambiar el disparo.
+void ISR3() {
+    if(i==0)
+	{
+    	// poner en low los que corersponden
+	i++;
+	}
+    else
+	{
+	// en high lo que corresponde y low
+	digitalWrite(pinesSalida[6],LOW);
+	i=0;
+	}
+    
+ 
+}
+
+
+// Función para medir la frecuencia de la señal
+float medirFrecuencia() {
+    float valorActual;
+    valorActual= analogRead(pinEntrada) * (3.3 / 4095.0);  // Lectura inicial
+    // Contar dos cruces por cero para medir el periodo completo, con un timeout
+    unsigned long tiempoInicio;
+    boolean flag = false;
+    while(valorActual>0)
+    { // Espero a que llegue un flanco descendente
+      valorActual= analogRead(pinEntrada) * (3.3 / 4095.0);  // Lectura inicial
+    }
+    while (valorActual==0) {
+        valorActual = analogRead(pinEntrada) * (3.3 / 4095.0);  // Lectura analógica
+        if(!flag){
+          tiempoInicio = micros();
+          flag = true;
+        }
+       // Serial.println(valorActual);
+        if (valorActual > 0) 
+        {
+            unsigned long tiempoFinal = micros();
+            float periodo = (tiempoFinal - tiempoInicio)*2;  // Tiempo de un ciclo completo en microsegundos
+            return 1000000.0 / periodo;  // Frecuencia en Hz
+        }
+    }
+   return 0;
+}
+
