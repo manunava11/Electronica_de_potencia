@@ -1,82 +1,58 @@
 const int pinEntradaRS = 4;        // entra R-S
-const int pinEntradaRT = 5;        // entra R-T
-const int pinEntradaST = 2;        // entra S-T
+float muestreoFrec;
 const int pinesSalida1[] = {13,14,15,16,17,18,19};
 float frecuenciaMedida;
-int i1=0;
-int i2=0;
-int i3=0;
+int i=0;
+
+hw_timer_t *timer = NULL;  // Temporizador de hardware
+volatile bool triggered = false;  // Bandera para indicar la interrupción inicial
 float periodo;
+
 void setup() {
     pinMode(pinSalida, OUTPUT);
     Serial.begin(115200);
     pinMode(pinEntradaRS, INPUT);
     attachInterrupt(digitalPinToInterrupt(pinEntradaRT), ISR, RISING);
-	pinMode(pinEntradaRT, INPUT);
-    attachInterrupt(digitalPinToInterrupt(pinEntradaRS), ISR2, RISING);
-	pinMode(pinEntradaST, INPUT);
-    attachInterrupt(digitalPinToInterrupt(pinEntradaST), ISR3, RISING);
-    
-   
-}
-
-void loop() {
-    frecuenciaMedida = medirFrecuencia();
+    for(int j=0;j<10;j++)
+    {
+    	muestreoFrec+=medirFrecuencia();
+    }
+    frecuenciaMedida = muestreoFrec/j;
     periodo = 1/frecuenciaMedida;
     Serial.print("Frecuencia: ");
     Serial.print(frecuenciaMedida);
     Serial.println(" Hz");
+    timer = timerBegin(0, 80, true);  // Temporizador 0, prescaler 80 (1 tick = 1 us)
+    timerAttachInterrupt(timer, &onTimer, true);  // Vincular el temporizador a la función 'onTimer'
+    timerAlarmWrite(timer, 3333, true);  // Configurar alarma cada 3333 us (3.33 ms)
+    timerAlarmDisable(timer);  // Desactivar el temporizador al inicio
+   
+}
+
+void loop() {
+
 
 
 }
 
-// Interrupcion de flanco ascendente para cambiar el disparo.
+
+// ISR para la interrupción por flanco ascendente
 void ISR() {
-    if(i==0)
-	{
-    	// poner en low los que corersponden
-	i++;
-	}
-    else
-	{
-	// en high lo que corresponde y low
-	digitalWrite(pinesSalida[6],LOW);
-	i=0;
-	}
-    
- 
+    if (!triggered) {  // Solo se activa en la primera interrupción
+        triggered = true;  // Marca que ocurrió la interrupción inicial
+        timerAlarmEnable(timer);  // Activa el temporizador para iniciar la ejecución periódica
+	  // poner en HIGH los que van
+	  i=1;
+    }
 }
-// Interrupcion de flanco ascendente para cambiar el disparo.
-void ISR2() {
-    if(i==0)
-	{
-    	// poner en low los que corersponden
-	i++;
-	}
-    else
-	{
-	// en high lo que corresponde y low
-	digitalWrite(pinesSalida[6],LOW);
-	i=0;
-	}
-    
- 
-}
-// Interrupcion de flanco ascendente para cambiar el disparo.
-void ISR3() {
-    if(i==0)
-	{
-    	// poner en low los que corersponden
-	i++;
-	}
-    else
-	{
-	// en high lo que corresponde y low
-	digitalWrite(pinesSalida[6],LOW);
-	i=0;
-	}
-    
- 
+
+// Función llamada periódicamente por el temporizador
+void IRAM_ATTR onTimer() {
+    // Código que deseas ejecutar periódicamente
+    // Aquí pondrás la tarea que quieres repetir cada 3.33 ms
+    // hacer un switch con i para poner en high lo que va.
+    // tambien en cada corrida poner low los anteriores
+    i++;
 }
 
 
