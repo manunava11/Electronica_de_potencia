@@ -24,6 +24,7 @@ void setup() {
     Serial.println(" Hz");
     timer = timerBegin(0, 80, true);  // Temporizador 0, prescaler 80 (1 tick = 1 us)
     timerAttachInterrupt(timer, &onTimer, true);  // Vincular el temporizador a la función 'onTimer'
+    // se podria poner 1000*periodo/6 
     timerAlarmWrite(timer, 3333, true);  // Configurar alarma cada 3333 us (3.33 ms)
     timerAlarmDisable(timer);  // Desactivar el temporizador al inicio
    
