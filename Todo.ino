@@ -1,6 +1,6 @@
 const int pinEntradaRS = 4;        // entra R-S
 float muestreoFrec;
-const int pinesSalida1[] = {13,14,15,16,17,18,19};
+const int pinesSalida[] = {13,14,15,16,17,18};
 float frecuenciaMedida;
 int i=0;
 
@@ -71,6 +71,9 @@ void ISR() {
     if (!triggered) {  // Solo se activa en la primera interrupción
         triggered = true;  // Marca que ocurrió la interrupción inicial
         timerAlarmEnable(timer);  // Activa el temporizador para iniciar la ejecución periódica
+	  digitalWrite(pinesSalida[0],HIGH);
+	  digitalWrite(pinesSalida[1],HIGH);
+	  digitalWrite(pinesSalida[5],LOW);
     // poner en HIGH los que van
     i=1;
     }
@@ -78,12 +81,70 @@ void ISR() {
 
 // Función llamada periódicamente por el temporizador
 void IRAM_ATTR onTimer() {
+/*T1 T2
+T2 T3
+T3 T4
+T4 T5
+T5 T6
+T6 T1*/
     // Código que deseas ejecutar periódicamente
     // Aquí pondrás la tarea que quieres repetir cada 3.33 ms
     // hacer un switch con i para poner en high lo que va.
     // tambien en cada corrida poner low los anteriores
-    i++;
-    calculateIntegral = true;  // Marca que hay que calcular la integral
+    switch (i) {
+        case 1:
+            // Acción para el caso 0
+            Serial.println("Caso 0");
+		digitalWrite(pinesSalida[0],LOW); // apago t1 dejo t2
+	      digitalWrite(pinesSalida[2],HIGH); // prendo t3
+		i++;
+   		calculateIntegral = true;  // Marca que hay que calcular la integral
+            break;
+
+        case 2:
+            // Acción para el caso 1
+            Serial.println("Caso 1");
+		digitalWrite(pinesSalida[1],LOW); // apago t2 dejo t3
+	      digitalWrite(pinesSalida[3],HIGH); // prendo t4
+		i++;
+   		calculateIntegral = true;  // Marca que hay que calcular la integral
+            break;
+
+        case 3:
+            // Acción para el caso 2
+            Serial.println("Caso 2");
+		digitalWrite(pinesSalida[2],LOW); // apago t3 dejo t4
+	      digitalWrite(pinesSalida[4],HIGH); // prendo t5
+		i++;
+   		calculateIntegral = true;  // Marca que hay que calcular la integral
+            break;
+
+        case 4:
+            // Acción para el caso 3
+            Serial.println("Caso 3");
+		digitalWrite(pinesSalida[3],LOW); // apago t4 dejo t5
+	      digitalWrite(pinesSalida[5],HIGH); // prendo t6
+		i++;
+    		calculateIntegral = true;  // Marca que hay que calcular la integral
+            break;
+
+        case 5:
+            // Acción para el caso 4
+            Serial.println("Caso 4");
+		digitalWrite(pinesSalida[4],LOW); // apago t5 dejo t6
+	      digitalWrite(pinesSalida[0],HIGH); // prendo t1
+		i=0;
+    		calculateIntegral = true;  // Marca que hay que calcular la integral
+            break;
+
+        case 0:
+            // Acción para el caso 5
+            Serial.println("Caso 5");
+		digitalWrite(pinesSalida[1],HIGH); // prendo t2
+	      digitalWrite(pinesSalida[5],LOW); // apago t6 y dejo t1
+ 		i++;
+   		calculateIntegral = true;  // Marca que hay que calcular la integral
+            break;
 }
 
 
