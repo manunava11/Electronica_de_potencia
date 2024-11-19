@@ -1,12 +1,16 @@
 const int pinEntradaRS = 22; // entra R-S
 float muestreoFrec;
-const int pinesSalida[] = {34, 35, 26, 15, 21, 23};
+const int pinesSalida[] = {33, 32, 26, 15, 21, 23};
+const int pin3v3 = 14;
 float frecuenciaMedida;
 int i = 0;
 
+int frec_clock=8000000;
+hw_timer_t *Timer0_Cfg = NULL;
 hw_timer_t *timer = NULL;
+
 volatile bool triggered = false;
-const int pinAlfa = 12;
+const int pinAlfa = 13;
 float tensionAlfa;
 float periodo;
 float alfaAng = 0;
@@ -23,44 +27,70 @@ volatile float integralValue = 0;
 unsigned int sampleCount = 0;
 
 void IRAM_ATTR onTimer() {
+    // Actualizamos la lógica de pines en cada evento del temporizador
     switch (i) {
         case 1:
             digitalWrite(pinesSalida[0], LOW);
             digitalWrite(pinesSalida[2], HIGH);
+            Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
         case 2:
             digitalWrite(pinesSalida[1], LOW);
             digitalWrite(pinesSalida[3], HIGH);
+            Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
         case 3:
             digitalWrite(pinesSalida[2], LOW);
             digitalWrite(pinesSalida[4], HIGH);
+            Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
         case 4:
             digitalWrite(pinesSalida[3], LOW);
             digitalWrite(pinesSalida[5], HIGH);
+            Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
         case 5:
             digitalWrite(pinesSalida[4], LOW);
             digitalWrite(pinesSalida[0], HIGH);
+            Serial.println(i);
             i = 0;
             calculateIntegral = true;
             break;
         case 0:
             digitalWrite(pinesSalida[1], HIGH);
             digitalWrite(pinesSalida[5], LOW);
+            Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
     }
+}
+
+void IRAM_ATTR ISR() {
+    detachInterrupt(digitalPinToInterrupt(pinEntradaRS));  // Deshabilitamos la interrupción
+
+    if (!triggered) {
+        triggered = true;
+        timerStart(timer);  // Iniciamos el temporizador una sola vez
+        Serial.println("Timer started");
+    }
+
+    // Actualizamos los pines
+    digitalWrite(pinesSalida[0], HIGH);
+    digitalWrite(pinesSalida[1], HIGH);
+    digitalWrite(pinesSalida[5], LOW);
+   
+    // Modificamos el valor de i
+    i = 1;
+
 }
 
 float medirFrecuencia() {
@@ -89,15 +119,18 @@ void variarAlfa() {
     tensionAlfa = analogRead(pinEntradaRS) * (3.3 / 4095.0);
     alfaAng = 243.24 * (tensionAlfa - 2.49);
     alfa = alfaAng * 2 * Pi / 360;
-    Serial.println(alfa);
+    Serial.print("Alfa es ")
+    Serial.print(alfa);
 }
 
 void setup() {
+    pinMode(pinEntradaRS, INPUT);
+    pinMode(pin3v3, OUTPUT);
     for (int l = 0; l < 6; l++) {
         pinMode(pinesSalida[l], OUTPUT);
     }
+    digitalWrite(pin3v3, HIGH);
     Serial.begin(115200);
-    pinMode(pinEntradaRS, INPUT);
 
     int j;
     for (j = 0; j < 10; j++) {
@@ -109,15 +142,25 @@ void setup() {
     Serial.print(frecuenciaMedida);
     Serial.println(" Hz");
 
-    timer = timerBegin(80);
-    timerAttachInterrupt(timer, &onTimer);
-    timerAlarm(timer, 3333 + alfa, true,0);
-    timerStop(timer);
+    attachInterrupt(digitalPinToInterrupt(pinEntradaRS), ISR, RISING);
+
+    // Configuramos el temporizador correctamente
+    frec_clock=1000000;
+    /*
+    Timer0_Cfg = timerBegin(0, 80, true);
+    timerAttachInterrupt(Timer0_Cfg, &Timer0_ISR, true);
+    timerAlarmWrite(Timer0_Cfg, 3333, true);
+    timerAlarmEnable(Timer0_Cfg);
+    */
+    timer = timerBegin(frec_clock);  // Temporizador 0, prescaler 80 (1 MHz)
+    timerAttachInterrupt(timer, &onTimer);  // Asociamos la función onTimer
+    timerAlarm(timer, 3333, true,0);  // en microsegundos (3.3333ms)
+    timerStop(timer);  // Aseguramos que el temporizador esté detenido inicialmente
 }
 
 void loop() {
     variarAlfa();
-    timerAlarm(timer, 3333 + alfa, true,0);
+   // timerAlarm(timer, 3333 + alfa, true,0);
 
     /*if (calculateIntegral) {
         calculateIntegral = false;
