@@ -119,7 +119,7 @@ void variarAlfa() {
     tensionAlfa = analogRead(pinEntradaRS) * (3.3 / 4095.0);
     alfaAng = 243.24 * (tensionAlfa - 2.49);
     alfa = alfaAng * 2 * Pi / 360;
-    Serial.print("Alfa es ")
+    Serial.print("Alfa es ");
     Serial.print(alfa);
 }
 
@@ -132,7 +132,7 @@ void setup() {
     digitalWrite(pin3v3, HIGH);
     Serial.begin(115200);
 
-    int j;
+   /* int j;
     for (j = 0; j < 10; j++) {
         muestreoFrec += medirFrecuencia();
     }
@@ -140,7 +140,7 @@ void setup() {
     periodo = 1 / frecuenciaMedida;
     Serial.print("Frecuencia: ");
     Serial.print(frecuenciaMedida);
-    Serial.println(" Hz");
+    Serial.println(" Hz");*/
 
     attachInterrupt(digitalPinToInterrupt(pinEntradaRS), ISR, RISING);
 
@@ -159,7 +159,7 @@ void setup() {
 }
 
 void loop() {
-    variarAlfa();
+   // variarAlfa();
    // timerAlarm(timer, 3333 + alfa, true,0);
 
     /*if (calculateIntegral) {
@@ -170,16 +170,6 @@ void loop() {
     }*/
 }
 
-void ISR() {
-    if (!triggered) {
-        triggered = true;
-        timerStart(timer);
-    }
-    digitalWrite(pinesSalida[0], HIGH);
-    digitalWrite(pinesSalida[1], HIGH);
-    digitalWrite(pinesSalida[5], LOW);
-    i = 1;
-}
 /*void sampleAndIntegrate() {
     unsigned long startTime = micros();  // Tiempo de inicio
     unsigned long currentTime;
