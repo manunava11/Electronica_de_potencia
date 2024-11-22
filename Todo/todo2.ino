@@ -1,6 +1,7 @@
 const int pinEntradaRS = 13; // entra R-S
 float muestreoFrec;
-const int pinesSalida[] = {33, 26, 21, 15, 23, 32};
+const int pinesSalida[] = {33, 26, 21, 15, 23, 32}; // FORMA T1 T2 T3 T4 T5 T6
+//const int pinesSalida[] = {33, 32, 26, 15, 21, 23};  // T1 T3 T5 T4 T6 T2
 const int pin3v3 = 14;
 float frecuenciaMedida;
 int i = 0;
