@@ -1,6 +1,6 @@
-const int pinEntradaRS = 22; // entra R-S
+const int pinEntradaRS = 13; // entra R-S
 float muestreoFrec;
-const int pinesSalida[] = {33, 32, 26, 15, 21, 23};
+const int pinesSalida[] = {33, 26, 21, 15, 23, 32};
 const int pin3v3 = 14;
 float frecuenciaMedida;
 int i = 0;
@@ -36,9 +36,9 @@ void IRAM_ATTR ISR() {
     }
 
     // Actualizamos los pines
-    digitalWrite(pinesSalida[0], HIGH);
     digitalWrite(pinesSalida[1], HIGH);
-    digitalWrite(pinesSalida[5], LOW);
+    digitalWrite(pinesSalida[5], HIGH);
+    digitalWrite(pinesSalida[0], LOW);
    
     // Modificamos el valor de i
     i = 1;
@@ -78,37 +78,37 @@ void variarAlfa() {
 void IRAM_ATTR onTimer() {
     // Actualizamos la lógica de pines en cada evento del temporizador
     switch (i) {
-        case 1:
-            digitalWrite(pinesSalida[0], LOW);
+        case 1: // estan 2 y 3
+            digitalWrite(pinesSalida[3], HIGH);
+            digitalWrite(pinesSalida[5], LOW);
+            Serial.println(i);
+            i++;
+            calculateIntegral = true;
+            break;
+        case 2: // estan 3 y 4
+            digitalWrite(pinesSalida[1], LOW);
             digitalWrite(pinesSalida[2], HIGH);
             Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
-        case 2:
-            digitalWrite(pinesSalida[1], LOW);
-            digitalWrite(pinesSalida[3], HIGH);
-            Serial.println(i);
-            i++;
-            calculateIntegral = true;
-            break;
-        case 3:
-            digitalWrite(pinesSalida[2], LOW);
+        case 3: // estan 4 y 5
+            digitalWrite(pinesSalida[3], LOW);
             digitalWrite(pinesSalida[4], HIGH);
             Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
-        case 4:
-            digitalWrite(pinesSalida[3], LOW);
-            digitalWrite(pinesSalida[5], HIGH);
+        case 4:// estan 5 y 6
+            digitalWrite(pinesSalida[2], LOW);
+            digitalWrite(pinesSalida[0], HIGH);
             Serial.println(i);
             i++;
             calculateIntegral = true;
             break;
-        case 5:
+        case 5:// estan 6 y 1
             digitalWrite(pinesSalida[4], LOW);
-            digitalWrite(pinesSalida[0], HIGH);
+            digitalWrite(pinesSalida[5], HIGH);
             Serial.println(i);
             attachInterrupt(digitalPinToInterrupt(pinEntradaRS), ISR, RISING);
             triggered=false;
@@ -117,7 +117,8 @@ void IRAM_ATTR onTimer() {
             calculateIntegral = true;
             break;
         case 0:
-            digitalWrite(pinesSalida[1], HIGH);
+            digitalWrite(pinesSalida[0], LOW);
+            digitalWrite(pinesSalida[4], LOW);
             digitalWrite(pinesSalida[5], LOW);
             Serial.println(i);
             i++;
